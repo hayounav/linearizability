@@ -42,39 +42,26 @@
 (declare-fun k (E) Int)
  
 ; k(i) = #{inc operations before i} 
-(assert 
-  (forall ((i E))
-          (=> (and (inc i) (forall ((i2 E)) (=> (and (inc i2) (not (= i2 i))) (pre i i2))))
-              (= (k i) 0))))
- 
-(assert 
-  (forall ((i1 E) (i2 E))
-          (=> (and (inc i1) (inc i2) (not (= i1 i2))
-                   (not (exists ((i3 E)) (and (inc i3) (pre i1 i3) (pre i3 i2)))))
-              (= (k i2) (+ (k i1) 1)))))
+(assert
+ (forall ((i1 E) (i2 E))
+		 (=> (and (inc i1) (inc i2) (pre i1 i2))
+			 (< (k i1) (k i2)))))
  
 ; k(d) = #{successfull dec operations before d}
-(assert 
-  (forall ((d E))
-          (=> (and (dec d) (forall ((d2 E)) (=> (and (dec d2) (not (= d2 d))) (pre d d2))))
-              (= (k d) 0))))
- 
-(assert 
-  (forall ((d1 E) (d2 E))
-          (=> (and (dec d1) (dec d2) (not (= d1 d2))
-                   (not (exists ((d3 E)) (and (dec d3) (pre d1 d3) (pre d3 d2)))))
-              (=(k d2) (ite (successful d1) (+ (k d1) 1) (k d1))))))
- 
+(assert
+ (forall ((d1 E) (d2 E))
+		 (=> (and (dec d1) (dec d2) (pre d1 d2))
+			 (or (not (successful d1)) (< (k d1) (k d2))))))
  
 ; Properties
 (assert
   (forall ((d E) (i E))
-          (=> (and (dec d) (inc i) (= (k i) (k d)) (pre d i))
+          (=> (and (dec d) (inc i) (<= (k i) (k d)) (pre d i))
               (not (successful d)))))
  
 (assert
   (forall ((d E) (i E))
-          (=> (and (dec d) (inc i) (= (k i) (k d)) (pre i d))
+          (=> (and (dec d) (inc i) (>= (k i) (k d)) (pre i d))
               (successful d))))
  
 ; Full triangle is PRE		  
