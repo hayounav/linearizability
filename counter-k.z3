@@ -52,6 +52,13 @@
  (forall ((d1 E) (d2 E))
 		 (=> (and (dec d1) (dec d2) (pre d1 d2))
 			 (or (not (successful d1)) (< (k d1) (k d2))))))
+
+(assert
+ (forall ((d1 E) (d2 E))
+		 (=> (and (dec d1) (dec d2) (pre d1 d2))
+			 (=> (forall ((d3 E))
+						 (and (not (and (pre d1 d3) (pre d3 d2))) (not (successful d1))))
+				 (= (k d1) (k d2))))))
  
 ; Properties
 (assert
