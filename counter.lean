@@ -1,0 +1,5 @@
+namespace counter
+
+
+
+end counter
