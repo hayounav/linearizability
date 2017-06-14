@@ -90,19 +90,26 @@
 ; The following two assertions are expected to be tested seperatley. 
 ; We want to see that uncommenting each of them seperatly gives an unsat 
 ; result and without both the model is satisfiable
+; This is implemented using the push and pop mechanisms.
 ;--------------------------------------------------------------------------------------
 
-; (assert  (not 
-;     (forall ((b E) (e E)) 
-;         (=> 
-;             ; Path of length 4 from b to e
-;             (exists ((e1 E) (e2 E)) (and (PRE b e1) (PRE e1 e2) (PRE e2 e)  ))
+(check-sat)
 
-;             ; Path of length <4 from b to e
-;             (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
+(push)
+(assert  (not 
+    (forall ((b E) (e E)) 
+        (=> 
+            ; Path of length 4 from b to e
+            (exists ((e1 E) (e2 E)) (and (PRE b e1) (PRE e1 e2) (PRE e2 e)  ))
 
+            ; Path of length <4 from b to e
+            (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
 
+(check-sat)
+(pop)
 
+(push)
+; No cycle of length <= 4
 (assert 
   (exists ((e1 E) (e2 E) (e3 E) (e4 E))
           (and (or (PRE e1 e2) (= e1 e2))
@@ -111,4 +118,4 @@
                (PRE e4 e1))))  
 
 (check-sat)
-;(get-model)
+(pop)
