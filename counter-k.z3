@@ -87,7 +87,7 @@
                 (and (dec e1) (inc e2) (not(successful e1)) (= (k e2) (k e1)))))))
 
 ;--------------------------------------------------------------------------------------
-; The following two assertions areexpected to be tested seperatley. 
+; The following two assertions are expected to be tested seperatley. 
 ; We want to see that uncommenting each of them seperatly gives an unsat 
 ; result and without both the model is satisfiable
 ;--------------------------------------------------------------------------------------
