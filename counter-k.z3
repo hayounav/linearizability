@@ -96,11 +96,11 @@
 (check-sat)
 
 (push)
-(assert  (not 
+(assert (not 
     (forall ((b E) (e E)) 
         (=> 
             ; Path of length 4 from b to e
-            (exists ((e1 E) (e2 E)) (and (PRE b e1) (PRE e1 e2) (PRE e2 e)  ))
+            (exists ((e1 E) (e2 E)) (and (PRE b e1) (PRE e1 e2) (PRE e2 e)))
 
             ; Path of length <4 from b to e
             (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
