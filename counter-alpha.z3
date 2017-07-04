@@ -103,21 +103,37 @@
                  (and (dec e1) (inc e2) (not(successful e1)) (= e2 (alpha e1)))))))
  
  
-; Every path of length 3 can be shorten
-(assert 
-  (not (forall ((x E) (y E))
-               (=> (exists ((a1 E) (a2 E))  (and (PRE x a1) (PRE a1 a2) (PRE a2 y)))
-                   (exists ((b1 E)) (and (PRE x b1) (PRE b1 y)))))))
- 
- 
-; (assert 
-;   (exists ((a1 E) (a2 E) (a3 E) (a4 E) (a5 E) (a6 E))
-;           (and (or (PRE a1 a2) (= a1 a2))
-;                (or (PRE a2 a3) (= a2 a3))
-;                (or (PRE a3 a4) (= a3 a4))
-;                (or (PRE a4 a5) (= a4 a5))
-;                (or (PRE a5 a6) (= a5 a6))
-;                (PRE a6 a1))))  
- 
+; ensure the correctness of the problem definition
 (check-sat)
-(get-model)
+
+;--------------------------------------------------------------------------------------
+; The following two assertions are expected to be tested seperatley. 
+; We want to see that uncommenting each of them seperatly gives an unsat 
+; result and without both the model is satisfiable
+; This is implemented using the push and pop mechanisms.
+;--------------------------------------------------------------------------------------
+
+(push)
+(assert (not 
+    (forall ((b E) (e E)) 
+        (=> 
+            ; Path of length 4 from b to e
+            (exists ((e1 E) (e2 E)) (and (PRE b e1) (PRE e1 e2) (PRE e2 e)))
+
+            ; Path of length <4 from b to e
+            (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
+
+(check-sat)
+(pop)
+
+(push)
+; No cycle of length <= 4
+(assert 
+  (exists ((e1 E) (e2 E) (e3 E) (e4 E))
+          (and (or (PRE e1 e2) (= e1 e2))
+               (or (PRE e2 e3) (= e2 e3))
+               (or (PRE e3 e4) (= e3 e4))
+               (PRE e4 e1))))  
+
+(check-sat)
+(pop)
