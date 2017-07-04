@@ -25,7 +25,7 @@
 ;; every event is either an update event or a scan event
 (assert 
   (forall ((e E))
-          (xor (inc e) (dec e))))
+          (xor (update e) (scan e))))
  
 ;; pre is Antisimetric
 (assert 
