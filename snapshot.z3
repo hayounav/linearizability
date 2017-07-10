@@ -107,6 +107,12 @@
 
 (declare-fun PRE (E E) bool)
 
+(assert 
+  (forall ((e1 E) (e2 E)) 
+          (= (PRE e1 e2) 
+             (or (pre e1 e2)))))
+
+
 ;;; ------------------------------------------------
 ;;; This section is supposed to prove linearizability.
 ;;; It should always remain the same, regardless of the problem formulation
