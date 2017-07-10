@@ -10,14 +10,28 @@
 (declare-sort E)
 
 ;; a sort for register contents
-;; *** try to avoid using this if possible!!! ***
 (declare-sort V)
 
+;; represents value getter
+(declare-fun val (E Int) V)
+
 ;; update event
-(declare-fun update (E) bool)
+(declare-fun update (E) Bool)
+
+;; update-event generator
+(declare-fun p-update (Int) E)
+
+;; p-update creates update events
+(assert (forall ((i Int))
+                (update (p-update i))))
+
+;; update events created by p-update are differentiated based on process index
+(assert (forall ((i Int) (j Int))
+                (=> (not (= i j))
+                    (not (= (p-update i) (p-update j))))))
 
 ;; scan event
-(declare-fun scan (E) bool)
+(declare-fun scan (E) Bool)
 
 ;; < is pre
 (declare-fun pre (E E) Bool)
@@ -41,6 +55,62 @@
   (forall ((a E) (b E) (c E) (d E))
           (=> (and (pre a b) (pre c d) (not(pre c b))) (pre a d))))
 
+;; alpha function represents the matching of update and scan events
+(declare-fun alpha (E Int) E)
+
+;; maps from scans to updates
+(assert (forall ((s E) (i Int))
+                (=> (scan s)
+                    (update (alpha s i)))))
+
+;; values are consistent
+(assert (forall ((s E) (i Int))
+                (=> (scan s)
+                    (= (val s i) (val (alpha s i) i)))))
+
+;; correct precedence
+(assert (forall ((s E) (i Int))
+                (=> (scan s)
+                    (not (pre s (alpha s i))))))
+
+;; the update-i the scan "sees" is the most recent one
+;; TODO: fix updates to have a process index
+(assert (forall ((s E) (i Int))
+                (=> (scan s)
+                    (forall ((u E))
+                            (=> (= u (p-update i))
+                                (not (and (pre (alpha s i) u)
+                                     (pre u s))))))))
+
+;; if s1 < s2 then alpha(s1, i) <= alpha(s2, i)
+(assert (forall ((s1 E) (s2 E) (i Int))
+                (=> (and (scan s1) (scan s2) (pre s1 s2))
+                    (not (pre (alpha s2 i) (alpha s1 i))))))
+
+;; the update-i the scan "sees" is the most recent one
+;; TODO: fix updates to have a process index
+(assert (forall ((s E) (i Int) (j Int))
+                (=> (scan s)
+                    (forall ((u E))
+                            (=> (= u (p-update i))
+                                (not (and (pre (alpha s i) u)
+                                          (pre u (alpha s j)))))))))
+
+;; helper relation pre-alpha
+(define-fun pre-alpha ((x!1 E) (x!2 E)) Bool
+  (and (scan x!1)
+       (scan x!2)
+       (exists ((i Int))
+               (pre (alpha x!1 i) (alpha x!2 i)))))
+
+;; sets of updates are ordered
+(assert (forall ((s1 E) (s2 E))
+                (=> (and (scan s1) (scan s2))
+                    (not (and (pre-alpha s1 s2) (pre-alpha s2 s1))))))
+
+(check-sat)
+
+(declare-fun PRE (E E) bool)
 
 ;;; ------------------------------------------------
 ;;; This section is supposed to prove linearizability.
