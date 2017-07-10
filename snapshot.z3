@@ -51,6 +51,10 @@
   (forall ((a E) (b E) (c E) (d E))
           (=> (and (pre a b) (pre c d) (not(pre c b))) (pre a d))))
 
+;;; ------------------------------------------------
+;;; Definition of the alpha function and the anti-scenarios
+;;; ------------------------------------------------
+
 ;; alpha function represents the matching of update and scan events
 (declare-fun alpha (E Int) E)
 
