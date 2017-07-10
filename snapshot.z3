@@ -19,16 +19,12 @@
 (declare-fun update (E) Bool)
 
 ;; update-event generator
-(declare-fun p-update (Int) E)
+(declare-fun p-update (E Int) Bool)
 
-;; p-update creates update events
-(assert (forall ((i Int))
-                (update (p-update i))))
-
-;; update events created by p-update are differentiated based on process index
-(assert (forall ((i Int) (j Int))
-                (=> (not (= i j))
-                    (not (= (p-update i) (p-update j))))))
+(assert (forall ((e E))
+                (iff (update e)
+                     (exists ((i Int))
+                             (and (< 0 i) (p-update e i))))))
 
 ;; scan event
 (declare-fun scan (E) Bool)
@@ -74,11 +70,10 @@
                     (not (pre s (alpha s i))))))
 
 ;; the update-i the scan "sees" is the most recent one
-;; TODO: fix updates to have a process index
 (assert (forall ((s E) (i Int))
                 (=> (scan s)
                     (forall ((u E))
-                            (=> (= u (p-update i))
+                            (=> (p-update u i)
                                 (not (and (pre (alpha s i) u)
                                      (pre u s))))))))
 
@@ -88,11 +83,10 @@
                     (not (pre (alpha s2 i) (alpha s1 i))))))
 
 ;; the update-i the scan "sees" is the most recent one
-;; TODO: fix updates to have a process index
 (assert (forall ((s E) (i Int) (j Int))
                 (=> (scan s)
                     (forall ((u E))
-                            (=> (= u (p-update i))
+                            (=> (p-update u i)
                                 (not (and (pre (alpha s i) u)
                                           (pre u (alpha s j)))))))))
 
@@ -101,7 +95,8 @@
   (and (scan x!1)
        (scan x!2)
        (exists ((i Int))
-               (pre (alpha x!1 i) (alpha x!2 i)))))
+               (and (< 0 i)
+                    (pre (alpha x!1 i) (alpha x!2 i))))))
 
 ;; sets of updates are ordered
 (assert (forall ((s1 E) (s2 E))
