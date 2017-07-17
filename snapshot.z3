@@ -86,9 +86,9 @@
 ;; the update-i the scan "sees" is the most recent one
 (assert (forall ((s E) (i PID))
                 (=> (scan s)
-                    (forall ((u E))
-                            (=> (p-update u i)
-                                (not (and (pre (alpha s i) u)
+                    (not (exists ((u E))
+                                 (=> (p-update u i)
+                                     (and (pre (alpha s i) u)
                                           (pre u s))))))))
 
 ;; if s1 < s2 then alpha(s1, i) <= alpha(s2, i)
