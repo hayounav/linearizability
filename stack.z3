@@ -41,31 +41,44 @@
 
 ;; track the index of push events
 ;; pop events receive the index of their matching push event
-(declare-fun idx (E) Int)
+(declare-fun val (E) Int)
 
 ;; Int -> Nat
 ;; push cannot be 0
 (assert (forall ((e E))
                 (ite (psh e)
-                     (> (idx e) 0)
-                     (>= (idx e) 0))))
+                     (> (val e) 0)
+                     (>= (val e) 0))))
 
 ;; uniqueness
 (assert (forall ((e1 E) (e2 E))
                 (=> (and (psh e1) (psh e2))
-                    (xor (= e1 e2) (not (= (idx e1) (idx e2)))))))
+                    (xor (= e1 e2) (not (= (val e1) (val e2)))))))
 
 (assert (forall ((e1 E))
-                (=> (and (pp e1) (> (idx e1) 0))
+                (=> (and (pp e1) (> (val e1) 0))
                     (exists ((e2 E))
-                            (and (psh e2) (= (idx e1) (idx e2)))))))
+                            (and (psh e2) (= (val e1) (val e2)))))))
 
 ;; monotonicity
 ;; (allow popping empty stack)
-(assert (forall ((e1 E) (e2 E))
-                (=> (pre e1 e2)
-                    (or (< (idx e1) (idx e2))
-                        (and (pp e2) (= (idx e2) 0))))))
+;; (assert (forall ((e1 E) (e2 E))
+;;                 (=> (pre e1 e2)
+;;                     (or (< (val e1) (val e2))
+;;                         (and (pp e2) (= (val e2) 0))))))
+
+;; anti-scenarios
+;; each pop has a matching and previous push
+(assert (forall ((e1 E))
+        (=> (and (pp e1) (not (= 0 (val e1))))
+            (exists ((e2 E))
+                    (and (psh e2) (= (val e1) (val e2)) (not (pre e1 e2)))))))
+
+;; no "rouge" pops of empty stack
+(assert (forall ((e1 E) (e2 E) (e3 E))
+                (=> (and (psh e1) (pp e2) (pp e3) (= 0 (val e2)))
+                    (not (and (pre e1 e2) (pre e2 e3))))))
+        
 (check-sat)
 
 (declare-fun PRE (E E) bool)
@@ -74,8 +87,9 @@
   (forall ((e1 E) (e2 E)) 
           (= (PRE e1 e2) 
              (or (pre e1 e2)
-                 (and (psh e1) (pp e2) (= (idx e1) (idx e2)))
-                 (and (pp e1) (psh e2) (= (idx e2) 0))))))
+                 (and (psh e1) (pp e2) (= (val e1) (val e2)))))))
+                 ;; (and (pp e1) (= 0 (val e1)) (psh e2)
+                 ;;      (exists ((e3 E)) (and (pp e3) (= (val e2) (val e3)) (pre e1 e3))))))))
 
 (check-sat)
 ;;; ------------------------------------------------
