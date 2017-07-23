@@ -50,26 +50,30 @@
                      (> (val e) 0)
                      (>= (val e) 0))))
 
-;; uniqueness
+;; uniqueness of push values
 (assert (forall ((e1 E) (e2 E))
                 (=> (and (psh e1) (psh e2))
                     (iff (= e1 e2) (= (val e1) (val e2))))))
 
+;; each pop returns a value which has been pushed
 (assert (forall ((e1 E))
                 (=> (and (pp e1) (> (val e1) 0))
                     (exists ((e2 E))
                             (and (psh e2) (= (val e1) (val e2)))))))
 
-;; anti-scenarios
-;; each pop has a matching and previous push
+;;; ------------------------------------------------
+;;; anti-scenarios
+;;; ------------------------------------------------
+
+;; a pop event cannot occur before its corresponding push event
 (assert (forall ((e1 E))
-        (=> (and (pp e1) (not (= 0 (val e1))))
+        (=> (and (pp e1) (> 0 (val e1)))
             (exists ((e2 E))
                     (and (psh e2) (= (val e1) (val e2)) (not (pre e1 e2)))))))
 
 ;; no "rouge" pops of empty stack
 (assert (forall ((e1 E) (e2 E) (e3 E))
-                (=> (and (psh e1) (pp e2) (pp e3) (= 0 (val e2)))
+                (=> (and (psh e1) (pp e2) (= 0 (val e2)) (pp e3))
                     (not (and (pre e1 e2) (pre e2 e3))))))
         
 (check-sat)
@@ -80,9 +84,9 @@
   (forall ((e1 E) (e2 E)) 
           (= (PRE e1 e2) 
              (or (pre e1 e2)
-                 (and (psh e1) (pp e2) (= (val e1) (val e2)))))))
-                 ;; (and (pp e1) (= 0 (val e1)) (psh e2)
-                 ;;      (exists ((e3 E)) (and (pp e3) (= (val e2) (val e3)) (pre e1 e3))))))))
+                 (and (psh e1) (pp e2) (= (val e1) (val e2)))
+                 (and (pp e1) (= 0 (val e1)) (psh e2)
+                      (exists ((e3 E)) (and (pp e3) (= (val e2) (val e3)) (pre e1 e3))))))))
 
 (check-sat)
 ;;; ------------------------------------------------
