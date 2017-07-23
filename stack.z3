@@ -65,9 +65,9 @@
 ;;; anti-scenarios
 ;;; ------------------------------------------------
 
-;; a pop event cannot occur before its corresponding push event
+;; each push event has a corresponding pop event, which does not occur after it
 (assert (forall ((e1 E))
-        (=> (and (pp e1) (> 0 (val e1)))
+        (iff (and (pp e1) (> 0 (val e1)))
             (exists ((e2 E))
                     (and (psh e2) (= (val e1) (val e2)) (not (pre e1 e2)))))))
 
