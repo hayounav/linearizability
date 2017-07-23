@@ -53,19 +53,12 @@
 ;; uniqueness
 (assert (forall ((e1 E) (e2 E))
                 (=> (and (psh e1) (psh e2))
-                    (xor (= e1 e2) (not (= (val e1) (val e2)))))))
+                    (iff (= e1 e2) (= (val e1) (val e2))))))
 
 (assert (forall ((e1 E))
                 (=> (and (pp e1) (> (val e1) 0))
                     (exists ((e2 E))
                             (and (psh e2) (= (val e1) (val e2)))))))
-
-;; monotonicity
-;; (allow popping empty stack)
-;; (assert (forall ((e1 E) (e2 E))
-;;                 (=> (pre e1 e2)
-;;                     (or (< (val e1) (val e2))
-;;                         (and (pp e2) (= (val e2) 0))))))
 
 ;; anti-scenarios
 ;; each pop has a matching and previous push
