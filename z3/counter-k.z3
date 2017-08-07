@@ -41,11 +41,20 @@
 
 (declare-fun k (E) Int)
 
+(assert (forall ((e E)) (<= 0 (k e))))
+
 ; k(i) = #{inc operations before i} 
 (assert
     (forall ((i1 E) (i2 E))
         (=> (and (inc i1) (inc i2) (pre i1 i2))
             (< (k i1) (k i2)))))
+
+(assert
+   (forall ((i1 E) (i2 E))
+        (=> (and (inc i1) (inc i2) (pre i1 i2) (< (k i1) (- (k i2) 1))) 
+            (exists ((i3 E)) (and (inc i3) (pre i1 i3) (pre i3 i2))))))
+
+(assert (exists ((i E)) (and (inc i) (= 0 (k i)))))
 
 ; k(d) = #{successfull dec operations before d}
 (assert
@@ -55,10 +64,16 @@
 
 (assert
     (forall ((d1 E) (d2 E))
-        (=> (and (dec d1) (dec d2) (pre d1 d2) (not (successful d1)))
-            (=> (forall ((d3 E))
-                (not (and (pre d1 d3) (pre d3 d2))) )
-            (= (k d1) (k d2))))))
+        (=> (and (dec d1) (dec d2) (pre d1 d2) (< (k d1) (- (k d2) 1))) 
+            (exists ((d3 E)) (and (dec d3) (pre d1 d3) (successful d3) (pre d3 d2))))))
+
+(assert (exists ((d E)) (and (dec d) (successful d) (= 0 (k d)))))
+
+(assert
+   (forall ((d1 E) (d2 E))
+       (=> (and (dec d1) (dec d2) (pre d1 d2) (not (successful d1)))
+           (=> (forall ((d3 E)) (or (not (pre d1 d3)) (not (pre d3 d2))))
+               (= (k d1) (k d2))))))
 
 ; Properties
 (assert
