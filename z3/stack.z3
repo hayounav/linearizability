@@ -65,17 +65,18 @@
 ;;; anti-scenarios
 ;;; ------------------------------------------------
 
-;; each push event has a corresponding pop event, which does not occur after it
+;; each successful pop event has a corresponding push event,
+;; which does not occur after it
 (assert (forall ((e1 E))
         (iff (and (pp e1) (> 0 (val e1)))
             (exists ((e2 E))
                     (and (psh e2) (= (val e1) (val e2)) (not (pre e1 e2)))))))
 
 ;; no "rouge" pops of empty stack
-(assert (forall ((e1 E) (e2 E) (e3 E))
-                (=> (and (psh e1) (pp e2) (= 0 (val e2)) (pp e3))
-                    (not (and (pre e1 e2) (pre e2 e3))))))
-        
+;; (assert (forall ((e1 E) (e2 E) (e3 E))
+;;                 (=> (and (psh e1) (pp e2) (= 0 (val e2)) (pp e3))
+;;                     (not (and (pre e1 e2) (pre e2 e3))))))
+
 (check-sat)
 
 (declare-fun PRE (E E) bool)
@@ -104,7 +105,6 @@
             (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
 
 (check-sat)
-(get-model)
 (pop)
 
 (push)
