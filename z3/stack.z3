@@ -21,23 +21,32 @@
  
 ;; pre is Transitive  
 (assert 
-  (forall ((e1 E) (e2 E) (e3 E))
-          (=> (and (pre e1 e2) (pre e2 e3)) (pre e1 e3))))
+ (forall ((e1 E) (e2 E) (e3 E))
+         (=> (and (pre e1 e2) (pre e2 e3)) (pre e1 e3))))
  
 ;; Extra condition (to simulate intervals = Russel & Wienner)
 (assert 
   (forall ((a E) (b E) (c E) (d E))
-          (=> (and (pre a b) (pre c d) (not(pre c b))) (pre a d))))
+          (=> (and (pre a b) (pre c d) (not (pre c b))) (pre a d))))
 
-;; push is comparable in pre
-(assert (forall ((p1 E) (p2 E))
-        (=> (and (psh p1) (psh p2))
-            (or (= p1 p2) (pre p1 p2) (pre p2 p1)))))
+;; a sort for process IDs
+(declare-sort P)
 
-;; pop is comparable in pre
-(assert (forall ((p1 E) (p2 E))
-        (=> (and (pp p1) (pp p2))
-            (or (= p1 p2) (pre p1 p2) (pre p2 p1)))))
+;; two processes in this scenario
+(declare-const A P)
+(declare-const B P)
+
+;; predicate to associate events with processes
+(declare-fun in-pid? (E P) bool)
+
+;; all events are associated with a process
+(assert (forall ((e E))
+		(xor (in-pid? e A) (in-pid? e B))))
+
+;; events in the same process are ordered
+(assert (forall ((e1 E) (e2 E) (p P))
+		(=> (and (not (= e1 e2)) (in-pid? e1 p) (in-pid? e2 p))
+		    (xor (pre e1 e2) (pre e2 e1)))))
 
 ;; track the index of push events
 ;; pop events receive the index of their matching push event
@@ -65,17 +74,26 @@
 ;;; anti-scenarios
 ;;; ------------------------------------------------
 
-;; each successful pop event has a corresponding push event,
-;; which does not occur after it
-(assert (forall ((e1 E))
-        (iff (and (pp e1) (> 0 (val e1)))
-            (exists ((e2 E))
-                    (and (psh e2) (= (val e1) (val e2)) (not (pre e1 e2)))))))
+;; algorithm does not perform pop before matching push
+(assert (forall ((e1 E) (e2 E))
+		(=> (and (psh e1) (pp e2) (= (val e1) (val e2)))
+		    (not (pre e2 e1)))))
 
-;; no "rouge" pops of empty stack
+;; ;; algorithm does not pop empty from a non-empty stack
 ;; (assert (forall ((e1 E) (e2 E) (e3 E))
-;;                 (=> (and (psh e1) (pp e2) (= 0 (val e2)) (pp e3))
-;;                     (not (and (pre e1 e2) (pre e2 e3))))))
+;; 		(=> (and (psh e1) (pp e2) (pp e3)
+;; 			 (pre e1 e2) (pre e2 e3)
+;; 			 (= (val e1) (val e3)))
+;; 		    (not (= 0 (val e2))))))
+
+;; ;; algorithm pops in LIFO
+;; (assert (forall ((e1 E) (e2 E))
+;; 		(=> (and (pp e1) (pp e2) (pre e1 e2))
+;; 		    (exists ((p2 E) (p1 E))
+;; 			    (and (psh p2) (psh p1)
+;; 				 (= (val p2) (val e2))
+;; 				 (= (val p1) (val e1))
+;; 				 (pre p2 p1))))))
 
 (check-sat)
 
@@ -84,16 +102,29 @@
 (assert 
   (forall ((e1 E) (e2 E)) 
           (= (PRE e1 e2) 
-             (or (pre e1 e2)
-                 (and (psh e1) (pp e2) (= (val e1) (val e2)))
-                 (and (pp e1) (= 0 (val e1)) (psh e2)
-                      (exists ((e3 E)) (and (pp e3) (= (val e2) (val e3)) (pre e1 e3))))))))
+             (or (pre e1 e2) ; e1 pre e2 --> e1 PRE e2
+                 (and (psh e1) (pp e2) (= (val e1) (val e2))) ; push(x) PRE pop(x)
+		 (and (pp e1) (pp e2) ; push(x) pre push(y) /\ push(y) pre pop(x) --> pop(y) PRE pop(x)
+		       (exists ((p2 E) (p1 E))
+		  	      (and (psh p2) (psh p1)
+		  		   (= (val e1) (val p1)) (= (val e2) (val p2))
+		  		   (pre p2 p1)
+				   (pre p1 e2)
+				   )))
+		 (and (pp e1) (pp e2) (= 0 (val e2)) ; push(x) pre pop(empty) --> pop(x) PRE pop(empty)
+		      (exists ((p E))
+		 	      (and (psh p) (= (val e1) (val p)) (pre p e2))))
+		 (and (pp e1) (= e1 e2) (not (= 0 (val e1))) ; pop(x) PRE pop(x) if x was not pushed
+		      (forall ((p E))
+		 	      (=> (psh p) (not (= (val e1) (val p))))))
+		 ))))
 
 (check-sat)
 ;;; ------------------------------------------------
 ;;; This section is supposed to prove linearizability.
 ;;; It should always remain the same, regardless of the problem formulation
 ;;; ------------------------------------------------
+
 (push)
 (assert (not 
     (forall ((b E) (e E)) 
@@ -105,6 +136,7 @@
             (exists ((e1 E)) (and (or (= b e1) (PRE b e1)) (or (= e1 e) (PRE e1 e))))))))
 
 (check-sat)
+;;(get-model)
 (pop)
 
 (push)
@@ -118,4 +150,6 @@
                (PRE e4 e1))))  
 
 (check-sat)
+(get-model)
 (pop)
+
