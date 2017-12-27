@@ -48,9 +48,12 @@
 ;;; limit the number of concurrent processes
 (declare-fun pid (E) Int)
 
+;; there are only 2 processes and every event must occur
+;; in exactly one of them
 (assert (forall ((e E))
 		(xor (= 0 (pid e)) (= 1 (pid e)))))
 
+;; events that occur in the same process must be ordered
 (assert (forall ((e1 E) (e2 E))
 		(=> (and (not (= e1 e2)) (= (pid e1) (pid e2)))
 		    (or (pre e1 e2) (pre e2 e1)))))
