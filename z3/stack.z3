@@ -45,6 +45,16 @@
                 (=> (and (psh e1) (psh e2))
                     (iff (= e1 e2) (= (val e1) (val e2))))))
 
+;;; limit the number of concurrent processes
+(declare-fun pid (E) Int)
+
+(assert (forall ((e E))
+		(xor (= 0 (pid e)) (= 1 (pid e)))))
+
+(assert (forall ((e1 E) (e2 E))
+		(=> (and (not (= e1 e2)) (= (pid e1) (pid e2)))
+		    (or (pre e1 e2) (pre e2 e1)))))
+
 ;;; ------------------------------------------------
 ;;; anti-scenarios
 ;;; ------------------------------------------------
