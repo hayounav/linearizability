@@ -19,34 +19,15 @@
 (assert 
   (forall ((e E)) (not (pre e e))))
  
-;; pre is Transitive  
-(assert 
- (forall ((e1 E) (e2 E) (e3 E))
-         (=> (and (pre e1 e2) (pre e2 e3)) (pre e1 e3))))
+;; ;; pre is Transitive  
+;; (assert 
+;;  (forall ((e1 E) (e2 E) (e3 E))
+;;          (=> (and (pre e1 e2) (pre e2 e3)) (pre e1 e3))))
  
 ;; Extra condition (to simulate intervals = Russel & Wienner)
 (assert 
   (forall ((a E) (b E) (c E) (d E))
           (=> (and (pre a b) (pre c d) (not (pre c b))) (pre a d))))
-
-;; a sort for process IDs
-(declare-sort P)
-
-;; two processes in this scenario
-(declare-const A P)
-(declare-const B P)
-
-;; predicate to associate events with processes
-(declare-fun in-pid? (E P) bool)
-
-;; all events are associated with a process
-(assert (forall ((e E))
-		(xor (in-pid? e A) (in-pid? e B))))
-
-;; events in the same process are ordered
-(assert (forall ((e1 E) (e2 E) (p P))
-		(=> (and (not (= e1 e2)) (in-pid? e1 p) (in-pid? e2 p))
-		    (xor (pre e1 e2) (pre e2 e1)))))
 
 ;; track the index of push events
 ;; pop events receive the index of their matching push event
@@ -64,36 +45,36 @@
                 (=> (and (psh e1) (psh e2))
                     (iff (= e1 e2) (= (val e1) (val e2))))))
 
-;; each pop returns a value which has been pushed
+;;; ------------------------------------------------
+;;; anti-scenarios
+;;; ------------------------------------------------
+
+;; algorithm only pops previously pushed values
 (assert (forall ((e1 E))
                 (=> (and (pp e1) (> (val e1) 0))
                     (exists ((e2 E))
                             (and (psh e2) (= (val e1) (val e2)))))))
-
-;;; ------------------------------------------------
-;;; anti-scenarios
-;;; ------------------------------------------------
 
 ;; algorithm does not perform pop before matching push
 (assert (forall ((e1 E) (e2 E))
 		(=> (and (psh e1) (pp e2) (= (val e1) (val e2)))
 		    (not (pre e2 e1)))))
 
-;; ;; algorithm does not pop empty from a non-empty stack
-;; (assert (forall ((e1 E) (e2 E) (e3 E))
-;; 		(=> (and (psh e1) (pp e2) (pp e3)
-;; 			 (pre e1 e2) (pre e2 e3)
-;; 			 (= (val e1) (val e3)))
-;; 		    (not (= 0 (val e2))))))
+;; algorithm does not pop empty from a non-empty stack
+(assert (forall ((e1 E) (e2 E) (e3 E))
+		(=> (and (psh e1) (pp e2) (pp e3)
+			 (pre e1 e2) (pre e2 e3)
+			 (= (val e1) (val e3)))
+		    (not (= 0 (val e2))))))
 
-;; ;; algorithm pops in LIFO
-;; (assert (forall ((e1 E) (e2 E))
-;; 		(=> (and (pp e1) (pp e2) (pre e1 e2))
-;; 		    (exists ((p2 E) (p1 E))
-;; 			    (and (psh p2) (psh p1)
-;; 				 (= (val p2) (val e2))
-;; 				 (= (val p1) (val e1))
-;; 				 (pre p2 p1))))))
+;; algorithm pops in LIFO
+(assert (forall ((e1 E) (e2 E))
+		(=> (and (pp e1) (pp e2) (pre e1 e2))
+		    (exists ((p2 E) (p1 E))
+			    (and (psh p2) (psh p1)
+				 (= (val p2) (val e2))
+				 (= (val p1) (val e1))
+				 (pre p2 p1))))))
 
 (check-sat)
 
