@@ -122,8 +122,8 @@
   (forall ((e1 E) (e2 E)) 
           (= (PRE e1 e2) 
              (or (pre e1 e2)
-                  (and (update e1) (scan e2) (exists ((i PID)) (and (p-update e1 i) (= e1 (alpha e2 i)))))
-                  (and (scan e1) (update e2) (exists ((i PID)) (and (pre (alpha e1 i) e2) (p-update e2 i))))))))
+                  (and (update e1) (scan e2) (exists ((i PID)) (and (p-update e1 i) (not (pre (alpha e2 i) e1)))))
+                  (and (scan e1) (update e2) (exists ((i PID)) (and (p-update e2 i) (pre (alpha e1 i) e2))))))))
 
 (check-sat)
 
