@@ -6,13 +6,13 @@
 ;; <_O is a PO on operations
 (declare-fun <O (O O) Bool)
 
-;; <_O is anti-reflexive
-(assert (forall ((o O)) (not (<O o o))))
+;; ;; <_O is anti-reflexive
+;; (assert (forall ((o O)) (not (<O o o))))
 
-;; <_O is a strict partial order on intervals (Russel & Wienner)
-(assert (forall ((a O) (b O) (c O) (d O))
-		(=> (and (<O a b) (<O c d) (not (<O c b)))
-		    (<O a d))))
+;; ;; <_O is a strict partial order on intervals (Russel & Wienner)
+;; (assert (forall ((a O) (b O) (c O) (d O))
+;; 		(=> (and (<O a b) (<O c d) (not (<O c b)))
+;; 		    (<O a d))))
 
 
 ;; a sort for actions
@@ -119,7 +119,7 @@
 ;; counter-specific declarations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; event-type predicates
+;; operation-type predicates
 (declare-fun inc? (O) Bool)
 (declare-fun dec? (O) Bool)
 
